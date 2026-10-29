@@ -1,0 +1,2 @@
+raw_rows,distinct_events,extra_event_rows,earliest_event_date,latest_event_date,missing_status_rows,invalid_status_rows,missing_location_rows
+50500,50000,500,2026-01-01,2026-06-30,50,50,50
