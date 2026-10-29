@@ -2,7 +2,7 @@
 
 A personal analyst case study investigating duplicate logistics events, billing discrepancies, and operational data-quality issues using entirely synthetic data.
 
-**Status:** Under construction. Dataset generation, SQL queries, and verified findings will be added as completed.
+**Status:** Working, reproducible case study. Generates 50,500 synthetic intake rows representing 50,000 rental events, runs five SQL investigations, and exports results to CSV.
 
 ## Business Problem
 
@@ -84,3 +84,86 @@ The purpose is to demonstrate analytical judgment and explainable SQL rather tha
 A reviewer should be able to reproduce the dataset, inspect the SQL, verify the reported findings, and understand how each recommendation follows from the evidence.
 
 Financial results will be described as synthetic billing discrepancies or potential exposure, not recovered revenue or proven business savings.
+## Run the Case Study
+
+Requires Python 3 with its standard-library SQLite module. No external packages, credentials, or data downloads are needed.
+
+Download and extract this repository. Open a terminal in the extracted folder and run these commands in order:
+
+```bash
+python3 generate_data.py
+python3 run_analysis.py
+```
+
+The generator creates `data/logistics.db` and `data/generation_manifest.json`. It refuses to overwrite an existing database.
+
+The analysis runner opens the database read-only and exports five CSV files into `results/`. Successful runs overwrite those result files.
+
+The generator uses a fixed random seed. The findings below were verified on macOS; the generator manifest records the intended issue counts.
+
+## Verified Findings
+
+| Measure | Result |
+|---|---:|
+| Raw intake rows | 50,500 |
+| Distinct rental events | 50,000 |
+| Identical replay events | 500 |
+| Conflicting event IDs | 0 |
+| Overcharged events | 50 |
+| Synthetic overcharge total | USD 1,250 |
+| Billing discrepancy rate | 0.10% |
+| Missing statuses | 50 |
+| Invalid statuses | 50 |
+| Location formatting aliases | 50 |
+| Missing locations | 50 |
+| Unknown locations | 50 |
+| Unique events with billing, status, or location exceptions | 300 |
+| Overall event exception rate | 0.60% |
+
+The 300 exception events exclude the 500 identical replays, which were analyzed separately.
+
+The USD 1,250 represents synthetic billing variance under the stated rate rules, not recovered revenue or realized savings.
+
+## Investigation Files
+
+| Step | SQL | Exported result |
+|---|---|---|
+| Profile raw intake | [Data profile](sql/01_data_profile.sql) | [CSV](results/01_data_profile.csv) |
+| Distinguish identical replays from conflicts | [Duplicate events](sql/02_duplicate_events.sql) | [CSV](results/02_duplicate_events.csv) |
+| Compare charges with reference rates | [Billing reconciliation](sql/03_billing_reconciliation.sql) | [CSV](results/03_billing_reconciliation.csv) |
+| Classify location references | [Location quality](sql/04_location_quality.sql) | [CSV](results/04_location_quality.csv) |
+| Compare monthly exception rates | [Monthly trends](sql/05_monthly_trends.sql) | [CSV](results/05_monthly_trends.csv) |
+
+Additional files:
+
+- [Database schema](sql/00_schema.sql)
+- [Synthetic-data generator](generate_data.py)
+- [Analysis runner](run_analysis.py)
+- [Findings, interpretation, and recommended controls](docs/findings.md)
+
+## Analytical Decisions
+
+- Preserve raw intake records rather than deleting duplicates.
+- Compare business details before treating repeated event IDs as identical replays.
+- Collapse exact business-record copies for event-level analysis.
+- Use LEFT JOINs to retain unmatched reference values.
+- Store money as integer cents.
+- Count an event once when it has any exception.
+- Compare monthly rates alongside counts.
+- Distinguish formatting aliases from unknown or missing locations.
+
+## Recommended Solution
+
+Introduce duplicate-processing controls, validate statuses and location references at intake, and reconcile proposed charges against agreed rates before billing.
+
+Route conflicting records and unresolved references to an exception queue. Monitor exception counts and rates to assess whether corrective actions reduce recurring problems.
+
+## Limits
+
+This is a controlled simulation with known injected issues. Matching the generator counts verifies the demonstrated queries; it does not establish accuracy on unseen business data.
+
+Billing assumes rental days multiplied by a fixed equipment rate. Taxes, discounts, contract changes, and service-record verification are outside scope.
+
+Monthly variation comes from synthetic date assignments and does not establish seasonality or an operational cause.
+
+The queries assume no conflicting versions remain when producing event-level results. The duplicate investigation must be reviewed before interpreting later outputs.
