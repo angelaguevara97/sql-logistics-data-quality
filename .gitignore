@@ -1,0 +1,12 @@
+# Generated local database
+data/*.db
+data/*.db-journal
+data/*.db-wal
+data/*.db-shm
+
+# Python cache
+__pycache__/
+*.py[cod]
+
+# macOS metadata
+.DS_Store
