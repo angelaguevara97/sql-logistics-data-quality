@@ -13,6 +13,8 @@ st.markdown("""
 .block-container {max-width: 1280px; padding-top: 2.5rem; padding-bottom: 3rem;}
 [data-testid="stMetric"] {background:#f7f9fc; border:1px solid #e3e8ef; padding:16px; border-radius:14px;}
 .small-note {color:#6b7280; font-size:.92rem;}
+/* Keep long SQL readable without letting one query dominate the case study. */
+[data-testid="stCodeBlock"] pre {max-height: 480px; overflow-y: auto;}
 </style>
 """, unsafe_allow_html=True)
 
@@ -69,6 +71,7 @@ left,right = st.columns([1.08,.92], gap="large")
 with left:
     st.markdown("### SQL used")
     st.code(load_sql(checks[choice]["sql"]), language="sql", line_numbers=True)
+    st.caption("Scroll inside the SQL panel to inspect the complete query.")
 
 with right:
     st.markdown("### Findings")
